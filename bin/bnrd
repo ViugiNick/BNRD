@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'bnrd/options'
+
+options = BNRD::OPTIONS
+option_parser = OptionParser.new do |opts|
+  opts.banner = <<~EOB
+    Usage: bnrd [OPTIONS] <ruby cmdline>
+  EOB
+
+  opts.separator "Options:"
+  opts.on("-p", "--path=[PATH]", String, "PATH to script to debug") do |paths|
+    options.script_path = paths.split ':' if paths
+  end
+end
+
+begin
+  option_parser.parse! ARGV
+rescue StandardError => e
+  puts option_parser
+  puts
+  puts e.message
+  exit 1
+end
+
+if ARGV.size < 1
+  puts option_parser
+  puts
+  puts "Ruby program to trace must be specified."
+  exit 1
+end
+
+options.set_env
+
+old_opts = ENV['RUBYOPT'] || ''
+
+#TODO
+starter = "-r#{File.expand_path(File.dirname(__FILE__))}/../lib/bnrd/starter"
+
+$0 = ARGV[0]
+Kernel.exec *ARGV

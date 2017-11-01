@@ -1,0 +1,25 @@
+PATH
+  remote: .
+  specs:
+    bnrd (0.0.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    debase-ruby_core_source (0.9.9)
+    rake (12.2.1)
+    rake-compiler (1.0.4)
+      rake
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bnrd!
+  bundler (~> 1.13)
+  debase-ruby_core_source (~> 0.9.6)
+  rake (~> 12.0)
+  rake-compiler
+
+BUNDLED WITH
+   1.16.0.pre.3
