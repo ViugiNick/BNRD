@@ -5,13 +5,14 @@ require 'bnrd/options'
 
 options = BNRD::OPTIONS
 option_parser = OptionParser.new do |opts|
-  opts.banner = <<~EOB
-    Usage: bnrd [OPTIONS] <ruby cmdline>
-  EOB
-
   opts.separator "Options:"
-  opts.on("-p", "--path=[PATH]", String, "PATH to script to debug") do |paths|
-    options.script_path = paths.split ':' if paths
+  opts.on("-p", "--path PATH", "PATH to script to debug") do |path|
+    options.script_path = path
+  end
+
+  opts.on("-b", "--breakpoint BREAKPOINT", "BREAKPOINT path and lineno") do |breakpoint|
+    options.bp_path, lineno = breakpoint.split ':'
+    options.bp_lineno = lineno.to_i
   end
 end
 
@@ -24,19 +25,8 @@ rescue StandardError => e
   exit 1
 end
 
-if ARGV.size < 1
-  puts option_parser
-  puts
-  puts "Ruby program to trace must be specified."
-  exit 1
-end
-
 options.set_env
 
-old_opts = ENV['RUBYOPT'] || ''
-
-#TODO
-starter = "-r#{File.expand_path(File.dirname(__FILE__))}/../lib/bnrd/starter"
-
-$0 = ARGV[0]
-Kernel.exec *ARGV
+script = File.join(File.dirname(__FILE__), '../lib/bnrd/starter.rb')
+puts "script:#{script}"
+load script if File.exist?(script)
