@@ -5,7 +5,7 @@ module BNRD
       puts OPTIONS
       path = OPTIONS.script_path
       iseq = RubyVM::InstructionSequence.compile_file(path)
-      puts iseq.disasm
+      #puts iseq.disasm
 
       BNRD.add_breakpoint(OPTIONS.bp_path, OPTIONS.bp_lineno, iseq)
 
