@@ -7,7 +7,7 @@ module BNRD
       iseq = RubyVM::InstructionSequence.compile_file(path)
       #puts iseq.disasm
 
-      BNRD.add_breakpoint(OPTIONS.bp_path, OPTIONS.bp_lineno, iseq)
+      BNRD.add_breakpoint(OPTIONS.bp_lineno, iseq)
 
       TracePoint.new(:specified_line){|tp|
         puts "#{tp.path}:#{tp.lineno}"
