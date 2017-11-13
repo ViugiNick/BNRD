@@ -51,6 +51,56 @@ iseqw_check(VALUE iseqw)
     return iseq;
 }
 
+struct set_specifc_data {
+    int pos;
+    int set;
+    int prev; /* 1: set, 2: unset, 0: not found */
+};
+
+static int
+my_line_trace_specify(int line, rb_event_flag_t *events_ptr, void *ptr)
+{
+    struct set_specifc_data *data = (struct set_specifc_data *)ptr;
+
+    if (data->pos == line) {
+        data->prev = *events_ptr & RUBY_EVENT_SPECIFIED_LINE ? 1 : 2;
+        if (data->set) {
+            *events_ptr = *events_ptr | RUBY_EVENT_SPECIFIED_LINE;
+        }
+        else {
+            *events_ptr = *events_ptr & ~RUBY_EVENT_SPECIFIED_LINE;
+        }
+        return 0; /* found */
+    }
+    else {
+	    return 1;
+    }
+}
+
+VALUE
+my_rb_iseqw_line_trace_specify(VALUE iseqval, int needed_line, VALUE set)
+{
+    struct set_specifc_data data;
+
+    data.prev = 0;
+    data.pos = needed_line;
+    if (data.pos < 0) rb_raise(rb_eTypeError, "`pos' is negative");
+
+    switch (set) {
+      case Qtrue:  data.set = 1; break;
+      case Qfalse: data.set = 0; break;
+      default:
+	    rb_raise(rb_eTypeError, "`set' should be true/false");
+    }
+
+    rb_iseqw_line_trace_each(iseqval, my_line_trace_specify, (void *)&data);
+
+//    if (data.prev == 0) {
+//	    rb_raise(rb_eTypeError, "`pos' is out of range.");
+//    }
+    return data.prev == 1 ? Qtrue : Qfalse;
+}
+
 static void
 c_add_breakpoint(unsigned int lineno, rb_iseq_t *iseq)
 {
@@ -67,22 +117,9 @@ c_add_breakpoint(unsigned int lineno, rb_iseq_t *iseq)
     int left = 0;
     int right = size;
 
-    if (iseq->body->catch_table) {
-        left += 1;
-        right -= 2;
-    }
-
     int cnt = 0;
 
-    for (i = left; i < right; i++, cnt++) {
-        //debug_print(iseq_inspect(iseq));
-        //fprintf(stderr, "%d:: table[i].position(%d) table[i].line_no(%d) == lineno(%d)\n", i, table[i].position, table[i].line_no, lineno);
-        if(table[i].line_no == lineno) {
-            //fprintf(stderr, "table[%d].position(%d)\n", i, table[i].position);
-            //debug_print(UINT2NUM(cnt));
-            rb_iseqw_line_trace_specify(rb_iseqw_new(iseq), UINT2NUM(cnt), Qtrue);
-        }
-    }
+    my_rb_iseqw_line_trace_specify(rb_iseqw_new(iseq), lineno, Qtrue);
 
     size = iseq->body->iseq_size;
     code = rb_iseq_original_iseq(iseq);
