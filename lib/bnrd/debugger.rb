@@ -4,8 +4,10 @@ module BNRD
       puts "BNRD.Debugger"
       puts OPTIONS
       path = OPTIONS.script_path
-      iseq = RubyVM::InstructionSequence.compile_file(path)
-      #puts iseq.disasm
+      bp_path = OPTIONS.bp_path
+
+      iseq = RubyVM::InstructionSequence.compile_file(bp_path)
+      puts iseq.disasm
 
       BNRD.add_breakpoint(OPTIONS.bp_lineno, iseq)
 
@@ -23,9 +25,11 @@ module BNRD
           line = gets
         end
 
-      }.enable{
+      }.enable {
+        #load path
         iseq.eval
       }
+
     end
   end
 end

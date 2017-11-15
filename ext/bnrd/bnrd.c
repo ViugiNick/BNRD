@@ -36,21 +36,6 @@ iseq_inspect(const rb_iseq_t *iseq)
     }
 }
 
-static const rb_iseq_t *
-iseqw_check(VALUE iseqw)
-{
-    rb_iseq_t *iseq = DATA_PTR(iseqw);
-
-    if (!iseq->body) {
-	    ibf_load_iseq_complete(iseq);
-    }
-
-    if (!iseq->body->location.label) {
-	    rb_raise(rb_eTypeError, "uninitialized InstructionSequence");
-    }
-    return iseq;
-}
-
 struct set_specifc_data {
     int pos;
     int set;
@@ -137,5 +122,6 @@ c_add_breakpoint(unsigned int lineno, rb_iseq_t *iseq)
 static void
 add_breakpoint(VALUE self, VALUE lineno, VALUE file_iseq)
 {
-    c_add_breakpoint(FIX2UINT(lineno), iseqw_check(file_iseq));
+    fprintf(stderr, "add_breakpoint\n");
+    c_add_breakpoint(FIX2UINT(lineno), rb_iseqw_to_iseq(file_iseq));
 }
